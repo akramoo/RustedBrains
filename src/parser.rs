@@ -137,12 +137,28 @@ impl Parser {
     }
 
     fn term(&mut self) -> TranspilerResult<Expr> {
-        let mut expr = self.primary()?;
+        let mut expr = self.factor()?;
 
         while matches!(self.peek(), Token::Plus | Token::Minus) {
             let op = match self.advance() {
                 Token::Plus => BinaryOp::Add,
                 Token::Minus => BinaryOp::Sub,
+                _ => unreachable!(),
+            };
+            let right = self.factor()?;
+            expr = Expr::binary(expr, op, right);
+        }
+
+        Ok(expr)
+    }
+
+    fn factor(&mut self) -> TranspilerResult<Expr> {
+        let mut expr = self.primary()?;
+
+        while matches!(self.peek(), Token::Multiply | Token::Divide) {
+            let op = match self.advance() {
+                Token::Multiply => BinaryOp::Mul,
+                Token::Divide => BinaryOp::Div,
                 _ => unreachable!(),
             };
             let right = self.primary()?;
@@ -253,5 +269,9 @@ mod tests {
         let ast = parser.parse().unwrap();
 
         assert_eq!(ast.len(), 1);
+        // Should parse as: 1 + (2 * 3) due to operator precedence
+        if let Stmt::Let { value, .. } = &ast[0] {
+            matches!(value, Expr::Binary { .. });
+        }
     }
 }
