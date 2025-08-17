@@ -1,57 +1,60 @@
+mod ast;
+mod codegen;
+mod error;
+mod lexer;
+mod parser;
+
+use codegen::BrainfuckGenerator;
+use error::TranspilerResult;
+use lexer::Lexer;
+use parser::Parser;
 use std::env;
 use std::fs;
 
 fn main() {
-    // Step 1: Read the file from args
+    if let Err(e) = run() {
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
+    }
+}
+
+fn run() -> TranspilerResult<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        eprintln!("Usage: rust2bf <filename>");
-        return;
+        return Err("Usage: rust2bf <filename>\nExample: rust2bf example.rs".into());
     }
 
     let filename = &args[1];
-    let contents = fs::read_to_string(filename).expect("Could not read file");
+    let contents = fs::read_to_string(filename)
+        .map_err(|e| format!("Could not read file '{}': {}", filename, e))?;
 
-    println!("Source:\n{}", contents);
+    println!("=== Source Code ===");
+    println!("{}\n", contents);
 
-    // Step 2: Tokenize
-    let tokens = tokenize(&contents);
-    println!("Tokens: {:?}", tokens);
-}
+    // Lexical analysis
+    let mut lexer = Lexer::new(&contents);
+    let tokens = lexer.tokenize()?;
+    println!("=== Tokens ===");
+    println!("{:?}\n", tokens);
 
-/// Splits source code into tokens (words, numbers, symbols)
-fn tokenize(source: &str) -> Vec<String> {
-    let mut tokens = Vec::new();
-    let mut current = String::new();
+    // Syntax analysis
+    let mut parser = Parser::new(tokens);
+    let ast = parser.parse()?;
+    println!("=== AST ===");
+    println!("{:#?}\n", ast);
 
-    for ch in source.chars() {
-        if ch.is_whitespace() {
-            if !current.is_empty() {
-                tokens.push(current.clone());
-                current.clear();
-            }
-        } else if is_symbol(ch) {
-            if !current.is_empty() {
-                tokens.push(current.clone());
-                current.clear();
-            }
-            tokens.push(ch.to_string());
-        } else {
-            current.push(ch);
-        }
-    }
+    // Code generation
+    let mut generator = BrainfuckGenerator::new();
+    let brainfuck_code = generator.generate(&ast)?;
 
-    if !current.is_empty() {
-        tokens.push(current);
-    }
+    println!("=== Generated Brainfuck ===");
+    println!("{}\n", brainfuck_code);
 
-    tokens
-}
+    // Save output
+    let output_filename = format!("{}.bf", filename.trim_end_matches(".rs"));
+    fs::write(&output_filename, &brainfuck_code)
+        .map_err(|e| format!("Could not write to '{}': {}", output_filename, e))?;
 
-/// Checks if a character is a special symbol in our toy Rust
-fn is_symbol(ch: char) -> bool {
-    matches!(
-        ch,
-        '=' | ';' | '{' | '}' | '(' | ')' | '+' | '-' | '!' | '<' | '>'
-    )
+    println!("Brainfuck code saved to: {}", output_filename);
+    Ok(())
 }
