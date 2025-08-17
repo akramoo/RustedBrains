@@ -52,6 +52,14 @@ impl<'a> Lexer<'a> {
                         self.advance();
                         Token::Minus
                     }
+                    '*' => {
+                        self.advance();
+                        Token::Multiply
+                    }
+                    '/' => {
+                        self.advance();
+                        Token::Divide
+                    }
                     '<' => {
                         self.advance();
                         Token::Less
@@ -193,7 +201,7 @@ mod tests {
 
     #[test]
     fn test_tokenize_operators() {
-        let mut lexer = Lexer::new("== != < >");
+        let mut lexer = Lexer::new("== != < > + - * /");
         let tokens = lexer.tokenize().unwrap();
 
         assert_eq!(
@@ -203,6 +211,10 @@ mod tests {
                 Token::NotEqual,
                 Token::Less,
                 Token::Greater,
+                Token::Plus,
+                Token::Minus,
+                Token::Multiply,
+                Token::Divide,
                 Token::Eof,
             ]
         );
