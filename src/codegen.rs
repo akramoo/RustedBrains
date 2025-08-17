@@ -19,6 +19,73 @@ impl BrainfuckGenerator {
         }
     }
 
+    fn mul_values(&mut self, result_addr: usize, left_addr: usize, right_addr: usize) {
+        // Clear result
+        self.move_to(result_addr);
+        self.clear_cell();
+
+        // Copy left and right to temporary locations
+        let temp_left = self.get_temp_addr();
+        let temp_right = self.get_temp_addr();
+        let temp_counter = self.get_temp_addr();
+
+        self.copy_value(left_addr, temp_left);
+        self.copy_value(right_addr, temp_right);
+
+        // Multiplication: result = left * right
+        // Use nested loops: for each unit of right, add left to result
+        self.move_to(temp_right);
+        self.output.push('['); // While right > 0
+
+        // Add left to result
+        self.copy_value(temp_left, temp_counter);
+        self.move_to(temp_counter);
+        self.output.push('['); // While counter > 0
+        self.move_to(result_addr);
+        self.output.push('+');
+        self.move_to(temp_counter);
+        self.output.push_str("-]");
+
+        // Decrement right
+        self.move_to(temp_right);
+        self.output.push_str("-]");
+    }
+
+    fn div_values(&mut self, result_addr: usize, left_addr: usize, right_addr: usize) {
+        // Integer division: result = left / right
+        // Clear result
+        self.move_to(result_addr);
+        self.clear_cell();
+
+        let temp_left = self.get_temp_addr();
+        let temp_right = self.get_temp_addr();
+
+        self.copy_value(left_addr, temp_left);
+        self.copy_value(right_addr, temp_right);
+
+        // Simplified division: subtract right from left until left < right
+        // Each subtraction increments the result
+        self.move_to(temp_left);
+        self.output.push('['); // While temp_left > 0
+
+        // Subtract temp_right from temp_left
+        let temp_sub = self.get_temp_addr();
+        self.copy_value(temp_right, temp_sub);
+        self.move_to(temp_sub);
+        self.output.push('[');
+        self.move_to(temp_left);
+        self.output.push('-');
+        self.move_to(temp_sub);
+        self.output.push_str("-]");
+
+        // Increment result
+        self.move_to(result_addr);
+        self.output.push('+');
+
+        self.move_to(temp_left);
+        self.output.push(']');
+    }
+
     pub fn generate(&mut self, program: &Program) -> TranspilerResult<String> {
         self.visit_program(program);
         Ok(self.output.clone())
@@ -231,10 +298,12 @@ impl BrainfuckGenerator {
                 match operator {
                     BinaryOp::Add => self.add_values(result_addr, left_addr, right_addr),
                     BinaryOp::Sub => self.sub_values(result_addr, left_addr, right_addr),
+                    BinaryOp::Mul => self.mul_values(result_addr, left_addr, right_addr),
+                    BinaryOp::Div => self.div_values(result_addr, left_addr, right_addr),
                     BinaryOp::Equal => self.compare_equal(result_addr, left_addr, right_addr),
                     BinaryOp::NotEqual => {
                         self.compare_equal(result_addr, left_addr, right_addr);
-                        // Flip the result
+                        // Flip the result (same as before)
                         let temp = self.get_temp_addr();
                         self.move_to(temp);
                         self.output.push('+');
