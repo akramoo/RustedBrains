@@ -15,6 +15,8 @@ pub enum Token {
     Assign,   // =
     Plus,     // +
     Minus,    // -
+    Multiply, // *
+    Divide,   // /
     Equal,    // ==
     NotEqual, // !=
     Less,     // <
@@ -33,6 +35,19 @@ pub enum Token {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum BinaryOp {
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Equal,
+    NotEqual,
+    Less,
+    Greater,
+}
+
+// Rest of the file remains the same...
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Number(i32),
     Variable(String),
@@ -41,16 +56,6 @@ pub enum Expr {
         operator: BinaryOp,
         right: Box<Expr>,
     },
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum BinaryOp {
-    Add,
-    Sub,
-    Equal,
-    NotEqual,
-    Less,
-    Greater,
 }
 
 #[derive(Debug, Clone, PartialEq)]
