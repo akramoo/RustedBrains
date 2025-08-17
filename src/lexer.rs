@@ -167,10 +167,6 @@ impl<'a> Lexer<'a> {
         self.current_char = self.input.next();
         self.position += 1;
     }
-
-    fn peek(&mut self) -> Option<&char> {
-        self.input.peek()
-    }
 }
 
 #[cfg(test)]

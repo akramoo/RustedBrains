@@ -1,5 +1,5 @@
 use crate::ast::{BinaryOp, Expr, Program, Stmt, Visitor};
-use crate::error::{TranspilerError, TranspilerResult};
+use crate::error::TranspilerResult;
 use std::collections::HashMap;
 
 pub struct BrainfuckGenerator {
@@ -193,7 +193,7 @@ impl BrainfuckGenerator {
             Expr::Binary {
                 left,
                 operator: BinaryOp::Greater,
-                right,
+                right: _,
             } => {
                 // Simplified: just evaluate left side
                 self.evaluate_expression(left)
