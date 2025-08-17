@@ -2,5 +2,25 @@
 name = "RustedBrains"
 version = "0.1.0"
 edition = "2024"
+authors = ["Samir Akram OUNIS samirouni2@gmail.com"]
+description = "A transpiler that converts a subset of Rust to Brainfuck"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/akramoo/RustedBrains"
+keywords = ["compiler", "transpiler", "brainfuck", "rust"]
+categories = ["development-tools", "compilers"]
+
+[[bin]]
+name = "RustedBrains"
+path = "src/main.rs"
 
 [dependencies]
+# No external dependencies - pure Rust implementation
+
+[dev-dependencies]
+# Add testing dependencies if needed
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
